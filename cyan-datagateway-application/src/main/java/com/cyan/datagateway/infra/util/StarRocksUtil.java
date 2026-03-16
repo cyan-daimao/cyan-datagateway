@@ -1,8 +1,12 @@
 package com.cyan.datagateway.infra.util;
 
 import com.cyan.arch.common.util.Convert;
+import com.cyan.datagateway.enums.SqlExecuteStatus;
 import com.cyan.datagateway.infra.config.StarRocksProperties;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +39,9 @@ public class StarRocksUtil {
 
     // 查询结果封装
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Accessors(chain = true)
     public static class QueryResult {
         /**
          * 查询结果列表
@@ -48,14 +55,22 @@ public class StarRocksUtil {
          * 查询耗时（毫秒）
          */
         private long costTimeMs;
+        /**
+         * 最终执行的SQL语句（包含自动追加的LIMIT）
+         */
+        private String sql;
+        /**
+         * sql执行状态
+         */
+        private SqlExecuteStatus sqlExecuteStatus;
 
-        public static QueryResult of(List<Map<String, Object>> resultList) {
+        public static QueryResult of(List<Map<String, Object>> resultList, String finalSql) {
             QueryResult result = new QueryResult();
             result.resultList = resultList;
             result.rowCount = resultList.size();
+            result.sql = finalSql; // 赋值最终执行的SQL
             return result;
         }
-
     }
 
     public StarRocksUtil(StarRocksProperties properties) {
@@ -95,11 +110,10 @@ public class StarRocksUtil {
      *
      * @param sql    SELECT 查询语句
      * @param params SQL 参数（可选）
-     * @return 查询结果封装对象
-     * @throws SQLException             数据库执行异常
+     * @return 查询结果封装对象（包含最终执行的SQL）
      * @throws IllegalArgumentException 非 SELECT 语句时抛出
      */
-    public QueryResult executeQuery(String sql, Object... params) throws SQLException {
+    public QueryResult executeQuery(String sql, Object... params) {
         long start = System.currentTimeMillis();
         // 1. 校验 SQL 非空
         if (sql == null || sql.trim().isEmpty()) {
@@ -112,23 +126,31 @@ public class StarRocksUtil {
             throw new IllegalArgumentException("该工具类仅支持 SELECT 查询语句，不支持 DML/DDL 操作");
         }
 
-        // 3. 追加默认 LIMIT
+        // 3. 追加默认 LIMIT，得到最终执行的SQL
         String finalSql = addDefaultLimitForSelect(sql);
+        log.info("最终执行 SQL: {}", finalSql);
+        if (params != null && params.length > 0) {
+            log.debug("SQL 参数: {}", params);
+        }
+
         // 4. 执行查询
+        List<Map<String, Object>> resultList;
         try (Connection conn = getConnection()) {
-            List<Map<String, Object>> resultList;
             if (params == null || params.length == 0) {
                 resultList = executeSelectWithoutParams(conn, finalSql);
             } else {
                 resultList = executeSelectWithParams(conn, finalSql, params);
             }
-            QueryResult queryResult = QueryResult.of(resultList);
-            queryResult.setCostTimeMs(System.currentTimeMillis()-start);
-            return queryResult;
         } catch (SQLException e) {
             log.error("SELECT 查询失败: {}，原始 SQL: {}，最终 SQL: {}", e.getMessage(), sql, finalSql);
-            throw e;
+            return new QueryResult().setSql(sql).setCostTimeMs(System.currentTimeMillis()-start).setSqlExecuteStatus(SqlExecuteStatus.FAILED);
         }
+
+        // 5. 封装结果（包含最终执行的SQL和耗时）
+        QueryResult queryResult = QueryResult.of(resultList, finalSql);
+        queryResult.setCostTimeMs(System.currentTimeMillis() - start)
+                .setSqlExecuteStatus(SqlExecuteStatus.SUCCESS);
+        return queryResult;
     }
 
     /**

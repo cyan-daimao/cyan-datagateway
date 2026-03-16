@@ -45,4 +45,8 @@ public class SqlExecuteResultDTO {
      */
     private String errorMessage;
 
+    /**
+     * sql
+     */
+    private String sql;
 }

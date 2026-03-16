@@ -33,20 +33,12 @@ public class SqlExecuteServiceImpl implements SqlExecuteService {
      */
     @Override
     public SqlExecuteResultBO execute(SqlExecuteCmd cmd) {
-        long start = System.currentTimeMillis();
-        try {
-            StarRocksUtil.QueryResult result = starRocksUtil.executeQuery(cmd.getSql());
-            return new SqlExecuteResultBO()
-                    .setExecuteId("1")
-                    .setStatus(SqlExecuteStatus.SUCCESS)
-                    .setCostTimeMs(result.getCostTimeMs())
-                    .setData(result.getResultList());
-        } catch (Exception e) {
-            return new SqlExecuteResultBO()
-                    .setExecuteId("1")
-                    .setStatus(SqlExecuteStatus.FAILED)
-                    .setErrorMessage(e.getMessage())
-                    .setCostTimeMs(System.currentTimeMillis() - start);
-        }
+        StarRocksUtil.QueryResult result = starRocksUtil.executeQuery(cmd.getSql());
+        return new SqlExecuteResultBO()
+                .setExecuteId("1")
+                .setStatus(SqlExecuteStatus.SUCCESS)
+                .setCostTimeMs(result.getCostTimeMs())
+                .setData(result.getResultList())
+                .setSql(result.getSql());
     }
 }

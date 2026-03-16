@@ -46,5 +46,9 @@ public class SqlExecuteResultBO {
      */
     private String errorMessage;
 
+    /**
+     * SQL
+     */
+    private String sql;
 
 }
