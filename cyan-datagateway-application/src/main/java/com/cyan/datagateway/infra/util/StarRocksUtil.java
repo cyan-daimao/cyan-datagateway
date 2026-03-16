@@ -35,9 +35,11 @@ public class StarRocksUtil {
     private final int defaultLimit;
 
     // 匹配 SELECT 语句的正则（支持 EXPLAIN/DESC 前缀，忽略大小写）
-    // 匹配规则：开头可选的 EXPLAIN/DESC + 任意空白 + SELECT 开头的语句
     private static final Pattern SELECT_PATTERN = Pattern.compile("^\\s*(EXPLAIN|DESC|DESCRIBE)?\\s*SELECT.*", Pattern.CASE_INSENSITIVE);
-    private static final Pattern LIMIT_PATTERN = Pattern.compile("\\s+LIMIT\\s+\\d+\\s*$", Pattern.CASE_INSENSITIVE);
+    // 匹配 LIMIT 语句（支持跨行，忽略大小写）
+    private static final Pattern LIMIT_PATTERN = Pattern.compile("\\s+LIMIT\\s+\\d+\\s*;?$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    // 匹配所有空白字符（换行/制表符/多个空格）
+    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
     // 查询结果封装
     @Data
@@ -70,7 +72,7 @@ public class StarRocksUtil {
             QueryResult result = new QueryResult();
             result.resultList = resultList;
             result.rowCount = resultList.size();
-            result.sql = finalSql; // 赋值最终执行的SQL
+            result.sql = finalSql;
             return result;
         }
 
@@ -118,6 +120,21 @@ public class StarRocksUtil {
     }
 
     /**
+     * 标准化 SQL 语句（移除多余空白/换行，统一格式）
+     */
+    private String normalizeSql(String sql) {
+        if (sql == null) {
+            return null;
+        }
+        // 1. 将所有空白字符（换行/制表符/多个空格）替换为单个空格
+        String normalized = WHITESPACE_PATTERN.matcher(sql).replaceAll(" ");
+        // 2. 首尾去空格
+        normalized = normalized.trim();
+        // 3. 保证末尾分号统一（如果有则保留，无则不加）
+        return normalized;
+    }
+
+    /**
      * 执行 SELECT 查询（含 EXPLAIN SELECT，自动追加默认 LIMIT）
      *
      * @param sql    SELECT 查询语句（支持 EXPLAIN/DESC 前缀）
@@ -134,20 +151,23 @@ public class StarRocksUtil {
                 throw new IllegalArgumentException("SQL语句不能为空");
             }
 
-            // 2. 校验必须是 SELECT 相关语句（含 EXPLAIN/DESC 前缀）
-            String trimSql = sql.trim();
-            if (!SELECT_PATTERN.matcher(trimSql).matches()) {
+            // 2. 标准化 SQL（移除换行/多余空格）
+            String normalizedSql = normalizeSql(sql);
+            log.debug("标准化后的 SQL: {}", normalizedSql);
+
+            // 3. 校验必须是 SELECT 相关语句（含 EXPLAIN/DESC 前缀）
+            if (!SELECT_PATTERN.matcher(normalizedSql).matches()) {
                 throw new IllegalArgumentException("该工具类仅支持 SELECT 查询语句（含 EXPLAIN/DESC SELECT），不支持 DML/DDL 操作");
             }
 
-            // 3. 追加默认 LIMIT，得到最终执行的SQL
-            finalSql = addDefaultLimitForSelect(sql);
+            // 4. 追加默认 LIMIT，得到最终执行的SQL
+            finalSql = addDefaultLimitForSelect(normalizedSql);
             log.info("最终执行 SQL: {}", finalSql);
             if (params != null && params.length > 0) {
                 log.debug("SQL 参数: {}", params);
             }
 
-            // 4. 执行查询
+            // 5. 执行查询
             List<Map<String, Object>> resultList;
             try (Connection conn = getConnection()) {
                 if (params == null || params.length == 0) {
@@ -157,7 +177,7 @@ public class StarRocksUtil {
                 }
             }
 
-            // 5. 封装成功结果
+            // 6. 封装成功结果
             long costTime = System.currentTimeMillis() - start;
             return QueryResult.of(resultList, finalSql)
                     .setCostTimeMs(costTime)
@@ -185,7 +205,6 @@ public class StarRocksUtil {
 
     /**
      * 仅对 SELECT 语句追加默认 LIMIT（如果未手动指定）
-     * 先移除末尾分号，再追加 LIMIT，避免语法错误
      */
     private String addDefaultLimitForSelect(String sql) {
         String trimSql = sql.trim();
@@ -195,20 +214,18 @@ public class StarRocksUtil {
                 ? trimSql.substring(0, trimSql.length() - 1).trim()
                 : trimSql;
 
-        // 修复：正确实现忽略大小写移除 EXPLAIN/DESC/DESCRIBE 前缀
-        // 1. 编译带忽略大小写标志的正则表达式
+        // 移除 EXPLAIN/DESC/DESCRIBE 前缀（忽略大小写）
         Pattern prefixPattern = Pattern.compile("^\\s*(EXPLAIN|DESC|DESCRIBE)\\s*", Pattern.CASE_INSENSITIVE);
-        // 2. 匹配并替换前缀为空字符串
         String selectPart = prefixPattern.matcher(sqlWithoutSemicolon).replaceFirst("");
 
-        // 判断是否已包含 LIMIT（基于移除前缀后的 SELECT 部分）
+        // 判断是否已包含 LIMIT（支持跨行匹配）
         if (LIMIT_PATTERN.matcher(selectPart).find()) {
             return trimSql; // 保留用户原始的分号格式
         }
 
         // 追加默认 LIMIT
         String sqlWithLimit = sqlWithoutSemicolon + " LIMIT " + defaultLimit;
-        // 保持用户原始的分号习惯
+        // 保持分号习惯
         if (trimSql.endsWith(";")) {
             sqlWithLimit += ";";
         }
@@ -220,7 +237,9 @@ public class StarRocksUtil {
      */
     private List<Map<String, Object>> executeSelectWithoutParams(Connection conn, String sql) throws SQLException {
         try (Statement stmt = conn.createStatement()) {
+            long stmtStart = System.currentTimeMillis();
             try (ResultSet rs = stmt.executeQuery(sql)) {
+                log.debug("SQL 执行耗时: {}ms", System.currentTimeMillis() - stmtStart);
                 return resultSetToList(rs);
             }
         }
@@ -235,8 +254,10 @@ public class StarRocksUtil {
             for (int i = 0; i < params.length; i++) {
                 pstmt.setObject(i + 1, params[i]);
             }
+            long stmtStart = System.currentTimeMillis();
             // 执行查询
             try (ResultSet rs = pstmt.executeQuery()) {
+                log.debug("SQL 执行耗时: {}ms", System.currentTimeMillis() - stmtStart);
                 return resultSetToList(rs);
             }
         }
@@ -263,9 +284,9 @@ public class StarRocksUtil {
             }
             result.add(row);
         }
+        log.debug("ResultSet 转换完成，共 {} 行数据", result.size());
         return result;
     }
-
 
     // --------------------- 资源关闭方法 ---------------------
     public static void close(ResultSet rs) {
