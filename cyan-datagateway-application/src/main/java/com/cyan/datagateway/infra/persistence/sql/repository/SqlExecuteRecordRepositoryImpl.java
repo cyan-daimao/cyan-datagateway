@@ -54,23 +54,24 @@ public class SqlExecuteRecordRepositoryImpl implements SqlExecuteRecordRepositor
 
     @Override
     public Page<SqlExecuteRecord> page(SqlExecuteRecordQuery query) {
-        Page<SqlExecuteRecordDO> page = new Page<>(query.getPageNum(), query.getPageSize());
-        LambdaQueryWrapper<SqlExecuteRecordDO> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(query.getUserId() != null, SqlExecuteRecordDO::getUserId, query.getUserId())
-                .like(query.getUserName() != null, SqlExecuteRecordDO::getUserName, query.getUserName())
-                .eq(query.getSqlType() != null, SqlExecuteRecordDO::getSqlType, query.getSqlType())
-                .eq(query.getStatus() != null, SqlExecuteRecordDO::getStatus, query.getStatus())
-                .eq(query.getExecuteId() != null, SqlExecuteRecordDO::getExecuteId, query.getExecuteId())
-                .ge(query.getStartTimeBegin() != null, SqlExecuteRecordDO::getStartTime, query.getStartTimeBegin())
-                .le(query.getStartTimeEnd() != null, SqlExecuteRecordDO::getStartTime, query.getStartTimeEnd())
-                .orderByDesc(SqlExecuteRecordDO::getCreatedAt);
-
-        Page<SqlExecuteRecordDO> resultPage = mapper.selectPage(page, wrapper);
-        Page<SqlExecuteRecord> domainPage = new Page<>(resultPage.getCurrent(), resultPage.getSize(), resultPage.getTotal());
-        domainPage.setRecords(resultPage.getRecords().stream()
-                .map(SqlExecuteRecordConvert.INSTANCE::toDomain)
-                .toList());
-        return domainPage;
+//        Page<SqlExecuteRecordDO> page = new Page<>(query.getPageNum(), query.getPageSize());
+//        LambdaQueryWrapper<SqlExecuteRecordDO> wrapper = new LambdaQueryWrapper<>();
+//        wrapper.eq(query.getUserId() != null, SqlExecuteRecordDO::getUserId, query.getUserId())
+//                .like(query.getUserName() != null, SqlExecuteRecordDO::getUserName, query.getUserName())
+//                .eq(query.getSqlType() != null, SqlExecuteRecordDO::getSqlType, query.getSqlType())
+//                .eq(query.getStatus() != null, SqlExecuteRecordDO::getStatus, query.getStatus())
+//                .eq(query.getExecuteId() != null, SqlExecuteRecordDO::getExecuteId, query.getExecuteId())
+//                .ge(query.getStartTimeBegin() != null, SqlExecuteRecordDO::getStartTime, query.getStartTimeBegin())
+//                .le(query.getStartTimeEnd() != null, SqlExecuteRecordDO::getStartTime, query.getStartTimeEnd())
+//                .orderByDesc(SqlExecuteRecordDO::getCreatedAt);
+//
+//        Page<SqlExecuteRecordDO> resultPage = mapper.selectPage(page, wrapper);
+//        Page<SqlExecuteRecord> domainPage = new Page<>(resultPage.getCurrent(), resultPage.getSize(), resultPage.getTotal());
+//        domainPage.setRecords(resultPage.getRecords().stream()
+//                .map(SqlExecuteRecordConvert.INSTANCE::toDomain)
+//                .toList());
+//        return domainPage;
+        return null;
     }
 
     @Override

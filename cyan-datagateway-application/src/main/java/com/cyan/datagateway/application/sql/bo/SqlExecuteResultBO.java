@@ -1,6 +1,10 @@
 package com.cyan.datagateway.application.sql.bo;
 
+import com.cyan.datagateway.enums.SqlExecuteStatus;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 import java.util.List;
 import java.util.Map;
@@ -12,36 +16,35 @@ import java.util.Map;
  * @since 1.0-SNAPSHOT
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Accessors(chain = true)
 public class SqlExecuteResultBO {
 
+    /**
+     * 执行ID
+     */
     private String executeId;
 
-    private String status;
+    /**
+     * 执行状态
+     */
+    private SqlExecuteStatus status;
 
-    private Long rowCount;
-
+    /**
+     * 耗时
+     */
     private Long costTimeMs;
 
+    /**
+     * 数据
+     */
     private List<Map<String, Object>> data;
 
+    /**
+     * 错误信息
+     */
     private String errorMessage;
 
-    public static SqlExecuteResultBO success(String executeId, List<Map<String, Object>> data, Long costTimeMs) {
-        SqlExecuteResultBO result = new SqlExecuteResultBO();
-        result.setExecuteId(executeId);
-        result.setStatus("SUCCESS");
-        result.setData(data);
-        result.setRowCount(data != null ? (long) data.size() : 0L);
-        result.setCostTimeMs(costTimeMs);
-        return result;
-    }
 
-    public static SqlExecuteResultBO fail(String executeId, String errorMessage, Long costTimeMs) {
-        SqlExecuteResultBO result = new SqlExecuteResultBO();
-        result.setExecuteId(executeId);
-        result.setStatus("FAILED");
-        result.setErrorMessage(errorMessage);
-        result.setCostTimeMs(costTimeMs);
-        return result;
-    }
 }

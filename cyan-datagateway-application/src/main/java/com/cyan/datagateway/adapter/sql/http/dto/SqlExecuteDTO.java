@@ -12,10 +12,7 @@ import lombok.Data;
 @Data
 public class SqlExecuteDTO {
 
+
     @NotBlank(message = "SQL内容不能为空")
     private String sql;
-
-    private String database;
-
-    private Long timeoutMs = 60000L;
 }

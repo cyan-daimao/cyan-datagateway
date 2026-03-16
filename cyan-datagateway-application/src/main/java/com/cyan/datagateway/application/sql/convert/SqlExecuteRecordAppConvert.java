@@ -1,6 +1,5 @@
 package com.cyan.datagateway.application.sql.convert;
 
-import com.cyan.arch.common.api.Page as ApiPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cyan.datagateway.application.sql.bo.SqlExecuteRecordBO;
 import com.cyan.datagateway.domain.sql.SqlExecuteRecord;
@@ -24,13 +23,13 @@ public interface SqlExecuteRecordAppConvert {
 
     List<SqlExecuteRecordBO> toBOList(List<SqlExecuteRecord> records);
 
-    default ApiPage<SqlExecuteRecordBO> toApiPage(Page<SqlExecuteRecord> page) {
-        ApiPage<SqlExecuteRecordBO> apiPage = new ApiPage<>();
-        apiPage.setPageNum((int) page.getCurrent());
-        apiPage.setPageSize((int) page.getSize());
+    default com.cyan.arch.common.api.Page<SqlExecuteRecordBO> toApiPage(Page<SqlExecuteRecord> page) {
+        com.cyan.arch.common.api.Page<SqlExecuteRecordBO> apiPage = new com.cyan.arch.common.api.Page<>();
+        apiPage.setCurrent((int) page.getCurrent());
+        apiPage.setSize((int) page.getSize());
         apiPage.setTotal(page.getTotal());
-        apiPage.setPages((int) page.getPages());
-        apiPage.setRecords(toBOList(page.getRecords()));
+//        apiPage.set((int) page.getPages());
+        apiPage.setData(toBOList(page.getRecords()));
         return apiPage;
     }
 }
