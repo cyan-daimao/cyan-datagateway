@@ -5,7 +5,6 @@ import com.cyan.datagateway.application.sql.bo.SqlExecuteResultBO;
 import com.cyan.datagateway.application.sql.cmd.SqlExecuteCmd;
 import com.cyan.datagateway.enums.SqlExecuteStatus;
 import com.cyan.datagateway.infra.util.StarRocksUtil;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +16,13 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class SqlExecuteServiceImpl implements SqlExecuteService {
 
     private final StarRocksUtil starRocksUtil;
+
+    public SqlExecuteServiceImpl(StarRocksUtil starRocksUtil) {
+        this.starRocksUtil = starRocksUtil;
+    }
 
 
     /**
@@ -33,12 +35,11 @@ public class SqlExecuteServiceImpl implements SqlExecuteService {
     public SqlExecuteResultBO execute(SqlExecuteCmd cmd) {
         long start = System.currentTimeMillis();
         try {
-            StarRocksUtil.ExecuteResult result = starRocksUtil.execute(cmd.getSql());
-            long end = System.currentTimeMillis();
+            StarRocksUtil.QueryResult result = starRocksUtil.executeQuery(cmd.getSql());
             return new SqlExecuteResultBO()
                     .setExecuteId("1")
                     .setStatus(SqlExecuteStatus.SUCCESS)
-                    .setCostTimeMs(end - start)
+                    .setCostTimeMs(result.getCostTimeMs())
                     .setData(result.getResultList());
         } catch (Exception e) {
             return new SqlExecuteResultBO()
