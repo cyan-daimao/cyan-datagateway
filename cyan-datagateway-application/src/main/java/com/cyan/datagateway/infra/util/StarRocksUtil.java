@@ -2,6 +2,7 @@ package com.cyan.datagateway.infra.util;
 
 import com.cyan.arch.common.util.Convert;
 import com.cyan.datagateway.enums.SqlExecuteStatus;
+import com.cyan.datagateway.enums.SqlType;
 import com.cyan.datagateway.infra.config.StarRocksProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,7 +21,7 @@ import java.util.regex.Pattern;
 
 /**
  * StarRocks 连接工具类
- * 仅支持 SELECT 查询语句（含 EXPLAIN SELECT），并自动给 SELECT 加默认 LIMIT
+ * 支持 DDL/DML/DQL 全类型 SQL 执行，DQL（SELECT）自动追加默认 LIMIT
  *
  * @author cy.Y
  * @since 1.0-SNAPSHOT
@@ -34,8 +35,6 @@ public class StarRocksUtil {
     // 默认 LIMIT 条数（从配置读取，兜底 1000）
     private final int defaultLimit;
 
-    // 匹配 SELECT 语句的正则（支持 EXPLAIN/DESC 前缀，忽略大小写）
-    private static final Pattern SELECT_PATTERN = Pattern.compile("^\\s*(EXPLAIN|DESC|DESCRIBE)?\\s*SELECT.*", Pattern.CASE_INSENSITIVE);
     // 匹配 LIMIT 语句（支持跨行，忽略大小写）
     private static final Pattern LIMIT_PATTERN = Pattern.compile("\\s+LIMIT\\s+\\d+\\s*;?$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     // 匹配所有空白字符（换行/制表符/多个空格）
@@ -68,6 +67,11 @@ public class StarRocksUtil {
          */
         private SqlExecuteStatus sqlExecuteStatus;
 
+        /**
+         * 错误信息
+         */
+        private String msg;
+
         public static QueryResult of(List<Map<String, Object>> resultList, String finalSql) {
             QueryResult result = new QueryResult();
             result.resultList = resultList;
@@ -77,12 +81,13 @@ public class StarRocksUtil {
         }
 
         // 快速创建失败结果的静态方法
-        public static QueryResult fail(String sql, long costTimeMs, SqlExecuteStatus status) {
+        public static QueryResult fail(String sql, long costTimeMs, SqlExecuteStatus status,String msg) {
             return new QueryResult()
                     .setResultList(new ArrayList<>())
                     .setRowCount(0)
                     .setSql(sql)
                     .setCostTimeMs(costTimeMs)
+                    .setMsg(msg)
                     .setSqlExecuteStatus(status);
         }
     }
@@ -135,9 +140,12 @@ public class StarRocksUtil {
     }
 
     /**
-     * 执行 SELECT 查询（含 EXPLAIN SELECT，自动追加默认 LIMIT）
+     * 执行 SQL 语句（支持 DDL/DML/DQL 全类型）
+     * - DQL（SELECT）：自动追加默认 LIMIT（如未指定）
+     * - DML（INSERT/UPDATE/DELETE）：返回影响行数
+     * - DDL（CREATE/ALTER/DROP）：返回执行结果
      *
-     * @param sql    SELECT 查询语句（支持 EXPLAIN/DESC 前缀）
+     * @param sql    SQL 语句
      * @param params SQL 参数（可选）
      * @return 查询结果封装对象（包含最终执行的SQL）
      */
@@ -155,73 +163,117 @@ public class StarRocksUtil {
             String normalizedSql = normalizeSql(sql);
             log.debug("标准化后的 SQL: {}", normalizedSql);
 
-            // 3. 校验必须是 SELECT 相关语句（含 EXPLAIN/DESC 前缀）
-            if (!SELECT_PATTERN.matcher(normalizedSql).matches()) {
-                throw new IllegalArgumentException("该工具类仅支持 SELECT 查询语句（含 EXPLAIN/DESC SELECT），不支持 DML/DDL 操作");
-            }
+            // 3. 解析 SQL 类型
+            SqlType sqlType = SqlType.parseFromSql(normalizedSql);
+            log.info("SQL 类型: {}", sqlType);
 
-            // 4. 追加默认 LIMIT，得到最终执行的SQL
-            finalSql = addDefaultLimitForSelect(normalizedSql);
-            log.info("最终执行 SQL: {}", finalSql);
-            if (params != null && params.length > 0) {
-                log.debug("SQL 参数: {}", params);
-            }
-
-            // 5. 执行查询
+            // 4. 根据 SQL 类型执行不同逻辑
+            finalSql = normalizedSql;
             List<Map<String, Object>> resultList;
+
             try (Connection conn = getConnection()) {
-                if (params == null || params.length == 0) {
-                    resultList = executeSelectWithoutParams(conn, finalSql);
+                if (sqlType == SqlType.SELECT) {
+                    // DQL: 追加默认 LIMIT（如未指定）
+                    finalSql = addDefaultLimitForSelect(normalizedSql);
+                    if (params == null || params.length == 0) {
+                        resultList = executeSelectWithoutParams(conn, finalSql);
+                    } else {
+                        resultList = executeSelectWithParams(conn, finalSql, params);
+                    }
+                } else if (sqlType == SqlType.INSERT || sqlType == SqlType.UPDATE || sqlType == SqlType.DELETE) {
+                    // DML: 执行更新操作
+                    int affectedRows = executeUpdate(conn, finalSql, params);
+                    resultList = buildAffectedRowsResult(affectedRows);
                 } else {
-                    resultList = executeSelectWithParams(conn, finalSql, params);
+                    // DDL 及其他: 执行并返回结果
+                    resultList = executeOther(conn, finalSql);
                 }
             }
 
-            // 6. 封装成功结果
+            // 5. 封装成功结果
             long costTime = System.currentTimeMillis() - start;
             return QueryResult.of(resultList, finalSql)
                     .setCostTimeMs(costTime)
                     .setSqlExecuteStatus(SqlExecuteStatus.SUCCESS);
 
         } catch (IllegalArgumentException e) {
-            // 非法参数异常（如非SELECT语句、空SQL）
+            // 非法参数异常
             long costTime = System.currentTimeMillis() - start;
-            log.error("SQL 参数校验失败: {}，原始 SQL: {}", e.getMessage(), sql);
-            return QueryResult.fail(finalSql == null ? sql : finalSql, costTime, SqlExecuteStatus.FAILED);
+            return QueryResult.fail(finalSql == null ? sql : finalSql, costTime, SqlExecuteStatus.FAILED, e.getMessage());
 
         } catch (SQLException e) {
             // 数据库执行异常
             long costTime = System.currentTimeMillis() - start;
-            log.error("SELECT 查询失败: {}，原始 SQL: {}，最终 SQL: {}", e.getMessage(), sql, finalSql);
-            return QueryResult.fail(finalSql == null ? sql : finalSql, costTime, SqlExecuteStatus.FAILED);
+            return QueryResult.fail(finalSql == null ? sql : finalSql, costTime, SqlExecuteStatus.FAILED, e.getMessage());
 
         } catch (Exception e) {
             // 其他未知异常
             long costTime = System.currentTimeMillis() - start;
-            log.error("SQL 执行发生未知异常: {}，原始 SQL: {}", e.getMessage(), sql, e);
-            return QueryResult.fail(finalSql == null ? sql : finalSql, costTime, SqlExecuteStatus.FAILED);
+            return QueryResult.fail(finalSql == null ? sql : finalSql, costTime, SqlExecuteStatus.FAILED,e.getMessage());
         }
     }
 
     /**
-     * 仅对 SELECT 语句追加默认 LIMIT（如果未手动指定）
+     * 执行 DML 更新操作（INSERT/UPDATE/DELETE）
+     */
+    private int executeUpdate(Connection conn, String sql, Object[] params) throws SQLException {
+        if (params == null || params.length == 0) {
+            try (Statement stmt = conn.createStatement()) {
+                return stmt.executeUpdate(sql);
+            }
+        } else {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                for (int i = 0; i < params.length; i++) {
+                    pstmt.setObject(i + 1, params[i]);
+                }
+                return pstmt.executeUpdate();
+            }
+        }
+    }
+
+    /**
+     * 执行 DDL 或其他语句
+     */
+    private List<Map<String, Object>> executeOther(Connection conn, String sql) throws SQLException {
+        try (Statement stmt = conn.createStatement()) {
+            boolean hasResultSet = stmt.execute(sql);
+            if (hasResultSet) {
+                try (ResultSet rs = stmt.getResultSet()) {
+                    return resultSetToList(rs);
+                }
+            } else {
+                int updateCount = stmt.getUpdateCount();
+                return buildAffectedRowsResult(updateCount);
+            }
+        }
+    }
+
+    /**
+     * 构建影响行数结果
+     */
+    private List<Map<String, Object>> buildAffectedRowsResult(int affectedRows) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("affected_rows", affectedRows);
+        result.add(row);
+        return result;
+    }
+
+    /**
+     * 对 SELECT 语句追加默认 LIMIT（如果未手动指定）
      */
     private String addDefaultLimitForSelect(String sql) {
         String trimSql = sql.trim();
+
+        // 判断是否已包含 LIMIT
+        if (LIMIT_PATTERN.matcher(trimSql).find()) {
+            return trimSql;
+        }
 
         // 移除末尾的分号
         String sqlWithoutSemicolon = trimSql.endsWith(";")
                 ? trimSql.substring(0, trimSql.length() - 1).trim()
                 : trimSql;
-
-        // 移除 EXPLAIN/DESC/DESCRIBE 前缀（忽略大小写）
-        Pattern prefixPattern = Pattern.compile("^\\s*(EXPLAIN|DESC|DESCRIBE)\\s*", Pattern.CASE_INSENSITIVE);
-        String selectPart = prefixPattern.matcher(sqlWithoutSemicolon).replaceFirst("");
-
-        // 判断是否已包含 LIMIT（支持跨行匹配）
-        if (LIMIT_PATTERN.matcher(selectPart).find()) {
-            return trimSql; // 保留用户原始的分号格式
-        }
 
         // 追加默认 LIMIT
         String sqlWithLimit = sqlWithoutSemicolon + " LIMIT " + defaultLimit;

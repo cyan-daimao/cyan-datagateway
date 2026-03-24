@@ -3,7 +3,6 @@ package com.cyan.datagateway.application.sql.impl;
 import com.cyan.datagateway.application.sql.SqlExecuteService;
 import com.cyan.datagateway.application.sql.bo.SqlExecuteResultBO;
 import com.cyan.datagateway.application.sql.cmd.SqlExecuteCmd;
-import com.cyan.datagateway.enums.SqlExecuteStatus;
 import com.cyan.datagateway.infra.util.StarRocksUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,11 +33,13 @@ public class SqlExecuteServiceImpl implements SqlExecuteService {
     @Override
     public SqlExecuteResultBO execute(SqlExecuteCmd cmd) {
         StarRocksUtil.QueryResult result = starRocksUtil.executeQuery(cmd.getSql());
+
         return new SqlExecuteResultBO()
                 .setExecuteId("1")
-                .setStatus(SqlExecuteStatus.SUCCESS)
+                .setStatus(result.getSqlExecuteStatus())
                 .setCostTimeMs(result.getCostTimeMs())
                 .setData(result.getResultList())
+                .setErrorMessage(result.getMsg())
                 .setSql(result.getSql());
     }
 }
