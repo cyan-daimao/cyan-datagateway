@@ -39,6 +39,10 @@ public class StarRocksUtil {
     private static final Pattern LIMIT_PATTERN = Pattern.compile("\\s+LIMIT\\s+\\d+\\s*;?$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     // 匹配所有空白字符（换行/制表符/多个空格）
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
+    // 匹配单行注释 -- 开头到行尾
+    private static final Pattern SINGLE_LINE_COMMENT = Pattern.compile("--[^\\n]*");
+    // 匹配多行注释 /* */
+    private static final Pattern MULTI_LINE_COMMENT = Pattern.compile("/\\*.*?\\*/", Pattern.DOTALL);
 
     // 查询结果封装
     @Data
@@ -125,17 +129,20 @@ public class StarRocksUtil {
     }
 
     /**
-     * 标准化 SQL 语句（移除多余空白/换行，统一格式）
+     * 标准化 SQL 语句（移除注释、多余空白/换行，统一格式）
      */
     private String normalizeSql(String sql) {
         if (sql == null) {
             return null;
         }
-        // 1. 将所有空白字符（换行/制表符/多个空格）替换为单个空格
-        String normalized = WHITESPACE_PATTERN.matcher(sql).replaceAll(" ");
-        // 2. 首尾去空格
+        // 1. 移除单行注释 -- 开头到行尾
+        String normalized = SINGLE_LINE_COMMENT.matcher(sql).replaceAll(" ");
+        // 2. 移除多行注释 /* */
+        normalized = MULTI_LINE_COMMENT.matcher(normalized).replaceAll(" ");
+        // 3. 将所有空白字符（换行/制表符/多个空格）替换为单个空格
+        normalized = WHITESPACE_PATTERN.matcher(normalized).replaceAll(" ");
+        // 4. 首尾去空格
         normalized = normalized.trim();
-        // 3. 保证末尾分号统一（如果有则保留，无则不加）
         return normalized;
     }
 
