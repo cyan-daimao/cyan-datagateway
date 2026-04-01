@@ -1,8 +1,8 @@
 spring:
   config:
     import:
-      - "nacos:arch-base.yaml?group=DEFAULT_GROUP&namespace=f52b16a2-2434-4a52-b096-b7c52dbc974d"
-      - "nacos:cyan-datagateway.yaml?group=DEFAULT_GROUP&namespace=f52b16a2-2434-4a52-b096-b7c52dbc974d"
+      - "nacos:arch-base.yaml?group=DEFAULT_GROUP&namespace=dev"
+      - "nacos:cyan-datagateway.yaml?group=DEFAULT_GROUP&namespace=dev"
   cloud:
     nacos:
       server-addr: 10.0.0.2:18848
@@ -10,14 +10,14 @@ spring:
       password: nacos
       config:
         file-extension: yaml
-        namespace: f52b16a2-2434-4a52-b096-b7c52dbc974d
+        namespace: dev
       discovery:
         ephemeral: true
-        namespace: f52b16a2-2434-4a52-b096-b7c52dbc974d
+        namespace: dev
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-    password: 627459859@qq.com
+    password: 123456
     url: jdbc:mysql://10.0.0.2:3306/cyan_datagateway
 
 # StarRocks 配置
