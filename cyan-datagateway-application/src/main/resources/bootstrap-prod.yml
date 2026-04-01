@@ -5,7 +5,7 @@ spring:
       - "nacos:cyan-datagateway.yaml?group=DEFAULT_GROUP&namespace=dev"
   cloud:
     nacos:
-      server-addr: 10.0.0.2:8848
+      server-addr: nacos-cs.nacos.svc.cluster.local:8848
       username: nacos
       password: nacos
       config:
@@ -22,6 +22,6 @@ spring:
 
 # StarRocks 配置
 starrocks:
-  jdbc-url: jdbc:mysql://10.0.0.2:30040/?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+  jdbc-url: jdbc:mysql://kube-starrocks-fe-service.starrocks.svc.cluster.local:9030/?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
   username: root
   password: ""
