@@ -5,7 +5,7 @@ spring:
       - "nacos:cyan-datagateway.yaml?group=DEFAULT_GROUP&namespace=prod"
   cloud:
     nacos:
-      server-addr: nacos-cs.nacos.svc.cluster.local:8848
+      server-addr: 10.0.0.2:8848
       username: nacos
       password: nacos
       config:
