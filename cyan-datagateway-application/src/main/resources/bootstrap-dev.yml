@@ -22,6 +22,6 @@ spring:
 
 # StarRocks 配置
 starrocks:
-  jdbc-url: jdbc:mysql://10.0.0.2:30040/?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+  jdbc-url: jdbc:mysql://10.0.0.2:32132/?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
   username: root
-  password: ""
+  password: 123456

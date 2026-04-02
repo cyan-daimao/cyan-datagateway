@@ -24,4 +24,4 @@ spring:
 starrocks:
   jdbc-url: jdbc:mysql://kube-starrocks-fe-service.starrocks.svc.cluster.local:9030/?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
   username: root
-  password: ""
+  password: 123456
