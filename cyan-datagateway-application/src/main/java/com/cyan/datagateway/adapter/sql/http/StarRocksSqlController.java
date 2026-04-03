@@ -8,7 +8,10 @@ import com.cyan.datagateway.application.sql.bo.SqlExecuteResultBO;
 import com.cyan.datagateway.application.sql.cmd.SqlExecuteCmd;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * SQL执行控制器
@@ -17,9 +20,9 @@ import org.springframework.web.bind.annotation.*;
  * @since 1.0-SNAPSHOT
  */
 @RestController
-@RequestMapping("/api/v1/sql")
+@RequestMapping("/api/v1/starrocks/sql")
 @RequiredArgsConstructor
-public class SqlExecuteController {
+public class StarRocksSqlController {
 
     private final SqlExecuteService sqlExecuteService;
 

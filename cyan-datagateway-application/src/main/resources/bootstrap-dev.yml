@@ -25,3 +25,14 @@ starrocks:
   jdbc-url: jdbc:mysql://10.0.0.2:32132/?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
   username: root
   password: 123456
+
+spark:
+  spark-master: "spark://10.0.0.2:27077"
+
+rustfs:
+  endpoint: http://10.0.0.2:9000
+  accessKey: rustfsadmin
+  secretKey: rustfsadmin
+
+iceberg:
+  uri: http://iceberg-rest.cyan.com/iceberg

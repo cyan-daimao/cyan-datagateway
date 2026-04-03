@@ -22,6 +22,9 @@
         <cyan-employee-login.version>1.0-SNAPSHOT</cyan-employee-login.version>
         <lombok.version>1.18.42</lombok.version>
         <mybatis-plus.version>3.5.7</mybatis-plus.version>
+        <spark.version>4.0.2</spark.version>
+        <scala.binary.version>2.13</scala.binary.version>
+        <iceberg.version>1.10.1</iceberg.version>
     </properties>
 
     <dependencyManagement>
@@ -57,6 +60,37 @@
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
+            </dependency>
+            <!-- Spark Core + SQL -->
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-core_${scala.binary.version}</artifactId>
+                <version>${spark.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-sql_${scala.binary.version}</artifactId>
+                <version>${spark.version}</version>
+            </dependency>
+
+            <!-- Iceberg Spark runtime (for Spark 4.0) -->
+            <dependency>
+                <groupId>org.apache.iceberg</groupId>
+                <artifactId>iceberg-spark-runtime-4.0_${scala.binary.version}</artifactId>
+                <version>${iceberg.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.iceberg</groupId>
+                <artifactId>iceberg-aws-bundle</artifactId>
+                <version>${iceberg.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.iceberg</groupId>
+                <artifactId>iceberg-core</artifactId>
+                <version>${iceberg.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
