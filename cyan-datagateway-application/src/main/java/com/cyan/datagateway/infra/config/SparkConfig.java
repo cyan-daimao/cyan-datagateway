@@ -36,6 +36,8 @@ public class SparkConfig {
                 // Disable Spark UI and metrics to avoid jakarta.servlet.SingleThreadModel conflict with Spring Boot 3.x
                 .config("spark.ui.enabled", "false")
                 .config("spark.metrics.enabled", "false")
+                .config("spark.executor.cores", "1")      // 每个Executor 1核
+                .config("spark.cores.max", "2")
                 .config("spark.executor.memory", "2g")
                 .config("spark.driver.memory", "1g")
 

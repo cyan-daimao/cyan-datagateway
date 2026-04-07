@@ -1,0 +1,38 @@
+spring:
+  config:
+    import:
+      - "nacos:arch-base.yaml?group=DEFAULT_GROUP&namespace=pre"
+      - "nacos:cyan-datagateway.yaml?group=DEFAULT_GROUP&namespace=pre"
+  cloud:
+    nacos:
+      server-addr: 10.0.0.2:8848
+      username: nacos
+      password: nacos
+      config:
+        file-extension: yaml
+        namespace: pre
+      discovery:
+        ephemeral: true
+        namespace: pre
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 123456
+    url: jdbc:mysql://10.0.0.2:3306/cyan_datagateway
+
+# StarRocks 配置
+starrocks:
+  jdbc-url: jdbc:mysql://kube-starrocks-fe-service.starrocks.svc.cluster.local:9030/?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+  username: root
+  password: 123456
+
+spark:
+  spark-master: "spark://10.0.0.2:27077"
+  
+rustfs:
+  endpoint: http://10.0.0.2:9000
+  accessKey: rustfsadmin
+  secretKey: rustfsadmin
+
+iceberg:
+  uri: http://iceberg-rest.cyan.com/iceberg
