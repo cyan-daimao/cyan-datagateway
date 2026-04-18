@@ -27,7 +27,8 @@ starrocks:
   password: 123456
 
 spark:
-  spark-master: "spark://10.0.0.2:7077"
+  #spark-master: "spark://10.0.0.2:27077"
+  spark-master: "local[*]"
 
 rustfs:
   endpoint: http://10.0.0.2:9000

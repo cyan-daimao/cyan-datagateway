@@ -40,6 +40,8 @@ public class SparkConfig {
                 .config("spark.cores.max", "2")
                 .config("spark.executor.memory", "2g")
                 .config("spark.driver.memory", "1g")
+//                .config("spark.driver.bindAddress", "10.0.0.20")
+//                .config("spark.driver.host", "10.0.0.20")
 
                 // ===================== Iceberg 核心配置 =====================
                 .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
