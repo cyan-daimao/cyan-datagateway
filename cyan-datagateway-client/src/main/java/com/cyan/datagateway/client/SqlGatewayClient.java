@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  * @author cy.Y
  * @since 1.0.0
  */
-@FeignClient(name = "SqlGatewayClient", path = "/rpc/v1/datagateway")
+@FeignClient(name = "cyan-datagateway", path = "/rpc/v1/datagateway")
 public interface SqlGatewayClient {
 
     /**
