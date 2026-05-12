@@ -31,6 +31,18 @@ public class SqlGatewayRPC implements SqlGatewayClient {
         com.cyan.datagateway.application.sql.cmd.SqlExecuteCmd appCmd =
                 new com.cyan.datagateway.application.sql.cmd.SqlExecuteCmd();
         appCmd.setSql(cmd.getSql());
+        appCmd.setSource("SQL");
+        SqlExecuteResultBO resultBO = sqlExecuteService.execute(appCmd);
+        SqlExecuteResultDTO resultDTO = SqlGatewayConvert.INSTANCE.toSqlExecuteResultDTO(resultBO);
+        return Response.success(resultDTO);
+    }
+
+    @Override
+    public Response<SqlExecuteResultDTO> executeMetricSql(SqlExecuteCmd cmd) {
+        com.cyan.datagateway.application.sql.cmd.SqlExecuteCmd appCmd =
+                new com.cyan.datagateway.application.sql.cmd.SqlExecuteCmd();
+        appCmd.setSql(cmd.getSql());
+        appCmd.setSource("METRIC");
         SqlExecuteResultBO resultBO = sqlExecuteService.execute(appCmd);
         SqlExecuteResultDTO resultDTO = SqlGatewayConvert.INSTANCE.toSqlExecuteResultDTO(resultBO);
         return Response.success(resultDTO);
@@ -41,6 +53,7 @@ public class SqlGatewayRPC implements SqlGatewayClient {
         com.cyan.datagateway.application.sql.cmd.SqlExecuteCmd appCmd =
                 new com.cyan.datagateway.application.sql.cmd.SqlExecuteCmd();
         appCmd.setSql(cmd.getSql());
+        appCmd.setSource("SPARK");
         SqlExecuteResultBO resultBO = sparkSqlService.execute(appCmd);
         SqlExecuteResultDTO resultDTO = SqlGatewayConvert.INSTANCE.toSqlExecuteResultDTO(resultBO);
         return Response.success(resultDTO);

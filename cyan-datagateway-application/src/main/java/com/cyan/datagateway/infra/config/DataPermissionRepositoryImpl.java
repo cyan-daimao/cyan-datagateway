@@ -30,8 +30,8 @@ public class DataPermissionRepositoryImpl implements DataPermissionRepository {
 
     @Override
     public boolean checkPermission(Long userId, String database, String table) {
-        // TODO: 后续实现实际的权限校验逻辑
-        DataPermission permission = findByUserId(userId);
-        return permission.hasPermission(database, table);
+        // datagateway 不再做权限校验，只负责执行
+        // 权限校验已上移到 cyan-dataauth
+        return true;
     }
 }

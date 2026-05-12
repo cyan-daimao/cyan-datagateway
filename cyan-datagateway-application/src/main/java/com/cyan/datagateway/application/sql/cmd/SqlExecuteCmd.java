@@ -17,4 +17,9 @@ public class SqlExecuteCmd {
 
 
     private Long timeoutMs = 60000L;
+
+    /**
+     * 执行来源：SQL / METRIC / SPARK
+     */
+    private String source;
 }

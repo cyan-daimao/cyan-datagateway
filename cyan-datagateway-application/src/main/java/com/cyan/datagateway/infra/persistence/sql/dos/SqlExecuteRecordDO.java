@@ -49,4 +49,9 @@ public class SqlExecuteRecordDO {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    /**
+     * 执行来源
+     */
+    private String source;
 }

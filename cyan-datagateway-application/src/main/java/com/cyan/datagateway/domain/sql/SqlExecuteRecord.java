@@ -48,10 +48,16 @@ public class SqlExecuteRecord {
     private LocalDateTime updatedAt;
 
     /**
+     * 执行来源
+     */
+    private String source;
+
+    /**
      * 开始执行
      */
     public static SqlExecuteRecord create(String executeId, Long userId, String userName,
-                                          String sqlContent, String queryEngine, String database) {
+                                          String sqlContent, String queryEngine, String database,
+                                          String source) {
         SqlExecuteRecord record = new SqlExecuteRecord();
         record.setExecuteId(executeId);
         record.setUserId(userId);
@@ -60,6 +66,7 @@ public class SqlExecuteRecord {
         record.setSqlType(SqlType.parseFromSql(sqlContent));
         record.setQueryEngine(queryEngine);
         record.setDatabase(database);
+        record.setSource(source);
         record.setStatus(SqlExecuteStatus.RUNNING);
         record.setStartTime(LocalDateTime.now());
         record.setCreatedAt(LocalDateTime.now());

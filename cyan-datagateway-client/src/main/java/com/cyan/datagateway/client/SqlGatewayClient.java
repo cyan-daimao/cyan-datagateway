@@ -33,4 +33,14 @@ public interface SqlGatewayClient {
      */
     @PostMapping("/spark/execute")
     Response<SqlExecuteResultDTO> executeSparkSql(@RequestBody SqlExecuteCmd cmd);
+
+    /**
+     * 执行Metric SQL
+     * 与 starrocks/execute 内部逻辑相同，仅路径不同便于区分来源
+     *
+     * @param cmd SQL执行命令
+     * @return 执行结果
+     */
+    @PostMapping("/starrocks/metric/execute")
+    Response<SqlExecuteResultDTO> executeMetricSql(@RequestBody SqlExecuteCmd cmd);
 }

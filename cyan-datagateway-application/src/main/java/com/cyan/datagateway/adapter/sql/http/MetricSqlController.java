@@ -14,24 +14,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * SQL执行控制器
+ * Metric SQL执行控制器
  *
  * @author cy.Y
  * @since 1.0-SNAPSHOT
  */
 @RestController
-@RequestMapping("/api/v1/starrocks/sql")
+@RequestMapping("/api/v1/starrocks/metric")
 @RequiredArgsConstructor
-public class StarRocksSqlController {
+public class MetricSqlController {
 
     private final SqlExecuteService sqlExecuteService;
 
     /**
-     * 执行查询SQL
+     * 执行指标分析SQL
      */
     @PostMapping("/execute")
     public Response<SqlExecuteResultDTO> executeQuery(@Valid @RequestBody SqlExecuteCmd cmd) {
-        cmd.setSource("SQL");
+        cmd.setSource("METRIC");
         SqlExecuteResultBO execute = sqlExecuteService.execute(cmd);
         SqlExecuteResultDTO resultDTO = SqlExecuteAdapterConvert.INSTANCE.toSqlExecuteResultDTO(execute);
         return Response.success(resultDTO);

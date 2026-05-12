@@ -42,4 +42,9 @@ public class SqlExecuteRecordBO {
     private LocalDateTime endTime;
 
     private LocalDateTime createdAt;
+
+    /**
+     * 执行来源
+     */
+    private String source;
 }
