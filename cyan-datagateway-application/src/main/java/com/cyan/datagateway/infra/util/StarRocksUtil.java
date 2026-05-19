@@ -206,16 +206,22 @@ public class StarRocksUtil {
         } catch (IllegalArgumentException e) {
             // 非法参数异常
             long costTime = System.currentTimeMillis() - start;
+            log.error("StarRocks SQL 参数校验失败, sql={}, error={}",
+                    finalSql == null ? sql : finalSql, e.getMessage(), e);
             return QueryResult.fail(finalSql == null ? sql : finalSql, costTime, SqlExecuteStatus.FAILED, e.getMessage());
 
         } catch (SQLException e) {
             // 数据库执行异常
             long costTime = System.currentTimeMillis() - start;
+            log.error("StarRocks SQL 执行失败, sql={}, error={}",
+                    finalSql == null ? sql : finalSql, e.getMessage(), e);
             return QueryResult.fail(finalSql == null ? sql : finalSql, costTime, SqlExecuteStatus.FAILED, e.getMessage());
 
         } catch (Exception e) {
             // 其他未知异常
             long costTime = System.currentTimeMillis() - start;
+            log.error("StarRocks SQL 执行异常, sql={}, error={}",
+                    finalSql == null ? sql : finalSql, e.getMessage(), e);
             return QueryResult.fail(finalSql == null ? sql : finalSql, costTime, SqlExecuteStatus.FAILED,e.getMessage());
         }
     }
