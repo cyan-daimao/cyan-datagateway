@@ -104,7 +104,6 @@
                 <configuration>
                     <release>21</release>
                     <fork>true</fork>
-                    <executable>/Users/cy/Library/Java/JavaVirtualMachines/ms-21.0.8/Contents/Home/bin/javac</executable>
                     <compilerArgs>
                         <arg>-parameters</arg>
                     </compilerArgs>
