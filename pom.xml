@@ -104,7 +104,6 @@
                 <configuration>
                     <release>21</release>
                     <fork>true</fork>
-                    <executable>/Users/cy/Library/Java/JavaVirtualMachines/ms-21.0.8/Contents/Home/bin/javac</executable>
                     <compilerArgs>
                         <arg>-parameters</arg>
                     </compilerArgs>
@@ -113,6 +112,11 @@
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                             <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>1.5.5.Final</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
