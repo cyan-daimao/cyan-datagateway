@@ -1,4 +1,4 @@
-package com.cyan.datagateway.infra.config;
+package com.cyan.datagateway.infra.persistence.sql.repository;
 
 import com.cyan.datagateway.domain.sql.valobj.DataPermission;
 import com.cyan.datagateway.domain.sql.repository.DataPermissionRepository;

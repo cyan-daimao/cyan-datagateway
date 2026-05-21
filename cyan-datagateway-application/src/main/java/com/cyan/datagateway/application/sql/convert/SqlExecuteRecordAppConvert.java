@@ -1,6 +1,7 @@
 package com.cyan.datagateway.application.sql.convert;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.cyan.arch.common.mapstruct.MapstructConvert;
 import com.cyan.datagateway.application.sql.bo.SqlExecuteRecordBO;
 import com.cyan.datagateway.domain.sql.SqlExecuteRecord;
 import org.mapstruct.Mapper;
@@ -14,7 +15,7 @@ import java.util.List;
  * @author cy.Y
  * @since 1.0-SNAPSHOT
  */
-@Mapper
+@Mapper(componentModel = "spring", uses = MapstructConvert.class)
 public interface SqlExecuteRecordAppConvert {
 
     SqlExecuteRecordAppConvert INSTANCE = Mappers.getMapper(SqlExecuteRecordAppConvert.class);

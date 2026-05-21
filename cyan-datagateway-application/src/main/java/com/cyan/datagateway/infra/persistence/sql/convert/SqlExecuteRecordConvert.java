@@ -1,5 +1,6 @@
 package com.cyan.datagateway.infra.persistence.sql.convert;
 
+import com.cyan.arch.common.mapstruct.MapstructConvert;
 import com.cyan.datagateway.domain.sql.SqlExecuteRecord;
 import com.cyan.datagateway.infra.persistence.sql.dos.SqlExecuteRecordDO;
 import org.mapstruct.Mapper;
@@ -12,7 +13,7 @@ import org.mapstruct.factory.Mappers;
  * @author cy.Y
  * @since 1.0-SNAPSHOT
  */
-@Mapper
+@Mapper(componentModel = "spring", uses = MapstructConvert.class)
 public interface SqlExecuteRecordConvert {
 
     SqlExecuteRecordConvert INSTANCE = Mappers.getMapper(SqlExecuteRecordConvert.class);

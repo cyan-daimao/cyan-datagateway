@@ -13,16 +13,34 @@ import java.util.List;
 @Data
 public class DataPermission {
 
+    /**
+     * 用户ID
+     */
     private Long userId;
 
+    /**
+     * 用户名
+     */
     private String userName;
 
+    /**
+     * 允许访问的数据库列表
+     */
     private List<String> allowedDatabases;
 
+    /**
+     * 允许访问的表列表
+     */
     private List<String> allowedTables;
 
+    /**
+     * 禁止访问的表列表
+     */
     private List<String> deniedTables;
 
+    /**
+     * 权限类型
+     */
     private PermissionType permissionType;
 
     public enum PermissionType {

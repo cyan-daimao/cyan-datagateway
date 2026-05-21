@@ -16,17 +16,38 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 public class SqlExecuteRecordQuery extends Pagination {
 
+    /**
+     * 用户ID
+     */
     private Long userId;
 
+    /**
+     * 用户名
+     */
     private String userName;
 
+    /**
+     * SQL类型
+     */
     private String sqlType;
 
+    /**
+     * 执行状态
+     */
     private String status;
 
+    /**
+     * 执行ID
+     */
     private String executeId;
 
+    /**
+     * 开始时间起
+     */
     private LocalDateTime startTimeBegin;
 
+    /**
+     * 开始时间止
+     */
     private LocalDateTime startTimeEnd;
 }

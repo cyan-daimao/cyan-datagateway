@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS `sql_execute_record` (
     `end_time` DATETIME DEFAULT NULL COMMENT '结束时间',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `deleted_at` DATETIME DEFAULT NULL COMMENT '删除时间（逻辑删除）',
     PRIMARY KEY (`id`),
     KEY `idx_execute_id` (`execute_id`),
     KEY `idx_user_id` (`user_id`),
@@ -35,6 +36,7 @@ CREATE TABLE IF NOT EXISTS `data_permission` (
     `denied_tables` TEXT DEFAULT NULL COMMENT '禁止访问的表(JSON数组)',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `deleted_at` DATETIME DEFAULT NULL COMMENT '删除时间（逻辑删除）',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='数据权限配置表';
