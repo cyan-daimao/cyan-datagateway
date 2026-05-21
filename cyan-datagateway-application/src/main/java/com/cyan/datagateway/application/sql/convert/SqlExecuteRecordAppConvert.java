@@ -1,7 +1,7 @@
 package com.cyan.datagateway.application.sql.convert;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.cyan.arch.common.mapstruct.MapstructConvert;
+import com.cyan.arch.base.mapstruct.MapstructConvert;
 import com.cyan.datagateway.application.sql.bo.SqlExecuteRecordBO;
 import com.cyan.datagateway.domain.sql.SqlExecuteRecord;
 import org.mapstruct.Mapper;
